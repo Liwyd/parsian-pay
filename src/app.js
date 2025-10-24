@@ -8,7 +8,6 @@ import { fileURLToPath } from 'url';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { rateLimiter, paymentRateLimiter, helmetConfig, corsConfig, requestLogger } from './middleware/security.js';
 
-// Import routes
 import paymentRoutes from './routes/payment.js';
 
 // Load environment variables
@@ -19,19 +18,15 @@ const __dirname = path.dirname(__filename);
 
 const app = express();
 
-// Security middleware
 app.use(helmetConfig);
 app.use(cors(corsConfig));
 app.use(rateLimiter);
 
-// Body parsing middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
-// Request logging
 app.use(requestLogger);
 
-// Health check endpoint
 app.get('/health', (req, res) => {
   res.json({
     success: true,
@@ -41,10 +36,8 @@ app.get('/health', (req, res) => {
   });
 });
 
-// API routes
-app.use('/api/payment', paymentRateLimiter, paymentRoutes);
+app.use('/api/v1/payment', paymentRateLimiter, paymentRoutes);
 
-// Root endpoint
 app.get('/', (req, res) => {
   res.json({
     success: true,
@@ -53,19 +46,16 @@ app.get('/', (req, res) => {
     endpoints: {
       health: '/health',
       payment: {
-        create: 'POST /api/payment/create',
-        callback: 'POST /api/payment/callback',
-        reverse: 'POST /api/payment/reverse',
-        status: 'GET /api/payment/status/:token'
+        create: 'POST /api/v1/payment/create',
+        callback: 'POST /api/v1/payment/callback',
+        reverse: 'POST /api/v1/payment/reverse',
+        status: 'GET /api/v1/payment/status/:token'
       }
     }
   });
 });
 
-// 404 handler
 app.use(notFoundHandler);
-
-// Error handler
 app.use(errorHandler);
 
 export default app;
