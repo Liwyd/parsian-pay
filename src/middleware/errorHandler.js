@@ -9,15 +9,21 @@
  * @param {Object} res - Express response object
  * @param {Function} next - Express next function
  */
-export function errorHandler(err, req, res, next) {
-  console.error('Error:', err);
+import { PayLogger } from '../utils/logger.js';
 
-  // Default error response
+export function errorHandler(err, req, res, next) {
+  const logger = new PayLogger();
+  logger.create();
+  
+  logger.writeError(`Error: ${err.message}`);
+  if (err.stack) {
+    logger.writeError(`Stack: ${err.stack}`);
+  }
+
   let status = 500;
   let message = 'Internal server error';
   let errors = null;
 
-  // Handle specific error types
   if (err.name === 'ValidationError') {
     status = 400;
     message = 'Validation failed';
@@ -36,7 +42,6 @@ export function errorHandler(err, req, res, next) {
     message = err.message;
   }
 
-  // Don't leak error details in production
   if (process.env.NODE_ENV === 'production' && status === 500) {
     message = 'Internal server error';
   }

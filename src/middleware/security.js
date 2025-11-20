@@ -62,17 +62,15 @@ export const helmetConfig = helmet({
  */
 export const corsConfig = {
   origin: function (origin, callback) {
-    // Allow requests with no origin (mobile apps, etc.)
-    if (!origin) return callback(null, true);
+    if (!origin) {
+      return callback(null, true);
+    }
     
-    // Add your allowed origins here
-    const allowedOrigins = [
-      'http://localhost:3000',
-      'http://localhost:3001',
-      'https://yourdomain.com'
-    ];
+    const allowedOrigins = process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(',').map(o => o.trim())
+      : [];
     
-    if (allowedOrigins.includes(origin)) {
+    if (allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
@@ -96,11 +94,13 @@ export function requestLogger(req, res, next) {
       url: req.url,
       status: res.statusCode,
       duration: `${duration}ms`,
-      ip: req.ip,
+      ip: req.ip || req.connection.remoteAddress,
       userAgent: req.get('User-Agent')
     };
     
-    console.log('Request:', logData);
+    if (process.env.NODE_ENV === 'development') {
+      console.log(`[${logData.method}] ${logData.url} - ${logData.status} - ${logData.duration}`);
+    }
   });
   
   next();

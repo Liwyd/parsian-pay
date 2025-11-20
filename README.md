@@ -18,7 +18,7 @@ A professional, modular JavaScript implementation of the Parsian Bank payment ga
 ```bash
 # Clone the repository
 git clone <repository-url>
-cd jsVersion
+cd parsian-pay
 
 # Install dependencies
 npm install
@@ -37,6 +37,8 @@ Create a `.env` file with the following configuration:
 ```env
 # Parsian Payment Gateway Configuration
 PARSIAN_PIN=your_parsian_pin_here
+
+# Parsian Service URLs (optional, defaults are provided)
 PARSIAN_SALE_URL=https://pec.shaparak.ir/NewIPGServices/Sale/SaleService.asmx?wsdl
 PARSIAN_CONFIRM_URL=https://pec.shaparak.ir/NewIPGServices/Confirm/ConfirmService.asmx?wsdl
 PARSIAN_REVERSE_URL=https://pec.shaparak.ir/NewIPGServices/Reverse/ReversalService.asmx?wsdl
@@ -44,7 +46,10 @@ PARSIAN_GATE_URL=https://pec.shaparak.ir/NewIPG/?Token=
 
 # Server Configuration
 PORT=3000
-NODE_ENV=development
+NODE_ENV=production
+
+# CORS Configuration (comma-separated list of allowed origins)
+ALLOWED_ORIGINS=https://yourdomain.com,https://www.yourdomain.com
 
 # Logging
 LOG_LEVEL=info
@@ -68,7 +73,7 @@ npm start
 #### 1. Create Payment Request
 
 ```bash
-POST /api/payment/create
+POST /api/v1/payment/create
 Content-Type: application/json
 
 {
@@ -95,7 +100,7 @@ Content-Type: application/json
 #### 2. Handle Payment Callback
 
 ```bash
-POST /api/payment/callback
+POST /api/v1/payment/callback
 Content-Type: application/json
 
 {
@@ -121,7 +126,7 @@ Content-Type: application/json
 #### 3. Reverse Payment
 
 ```bash
-POST /api/payment/reverse
+POST /api/v1/payment/reverse
 Content-Type: application/json
 
 {
@@ -143,7 +148,7 @@ Content-Type: application/json
 #### 4. Check Payment Status
 
 ```bash
-GET /api/payment/status/123456789
+GET /api/v1/payment/status/123456789
 ```
 
 ## Project Structure

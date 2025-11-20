@@ -47,8 +47,7 @@ async function handleCallback(postData) {
       console.log('RRN:', result.getRRN());
       console.log('Card Number:', result.getCardNumberMasked());
       
-      // Update your database with successful payment
-      // await updatePaymentStatus(result.getToken(), 'completed');
+      return result;
     } else {
       console.error('Payment confirmation failed:', result ? result.getMessage() : 'Unknown error');
     }
@@ -69,8 +68,7 @@ async function reversePayment(token) {
       console.log('Payment reversed successfully');
       console.log('Token:', result.getToken());
       
-      // Update your database
-      // await updatePaymentStatus(token, 'reversed');
+      return result;
     } else {
       console.error('Payment reversal failed:', result ? result.getMessage() : 'Unknown error');
     }
@@ -138,7 +136,3 @@ export function setupPaymentRoutes(app) {
   });
 }
 
-// Run examples (uncomment to test)
-// createPayment();
-// handleCallback({ status: 0, Token: 123456, RRN: 789012 });
-// reversePayment(123456);

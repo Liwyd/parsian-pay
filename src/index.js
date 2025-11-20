@@ -1,54 +1,62 @@
 import app from './app.js';
 import { PayLogger } from './utils/logger.js';
-const logger = new PayLogger();
-const PORT = process.env.PORT || 3000;
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+const logger = new PayLogger();
+const PORT = process.env.PORT || 3000;
 
-
-const logsDir = path.join(__dirname, 'logs');
+const logsDir = path.join(__dirname, '..', 'logs');
 if (!fs.existsSync(logsDir)) {
   fs.mkdirSync(logsDir, { recursive: true });
 }
 
+logger.create();
+
+if (!process.env.PARSIAN_PIN) {
+  logger.writeError('PARSIAN_PIN environment variable is not set');
+  process.exit(1);
+}
+
 const server = app.listen(PORT, () => {
-  console.log(`Parsian Payment Gateway server running on port ${PORT}`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
-  console.log(`API Documentation: http://localhost:${PORT}/`);
+  logger.writeInfo(`Server started on port ${PORT}`);
+  logger.writeInfo(`Environment: ${process.env.NODE_ENV || 'development'}`);
   
-  if (process.env.NODE_ENV === 'development') {
-    console.log(`Environment: ${process.env.NODE_ENV}`);
-    console.log(`Parsian PIN configured: ${process.env.PARSIAN_PIN ? 'Yes' : 'No'}`);
+  if (process.env.NODE_ENV !== 'production') {
+    logger.writeInfo(`Health check: http://localhost:${PORT}/health`);
   }
 });
 
-process.on('SIGTERM', () => {
-  console.log('SIGTERM received, shutting down gracefully');
+const gracefulShutdown = (signal) => {
+  logger.writeInfo(`${signal} received, initiating graceful shutdown`);
+  
   server.close(() => {
-    console.log('Process terminated');
+    logger.writeInfo('HTTP server closed');
     process.exit(0);
   });
-});
+  
+  setTimeout(() => {
+    logger.writeError('Forced shutdown after timeout');
+    process.exit(1);
+  }, 10000);
+};
 
-process.on('SIGINT', () => {
-  console.log('SIGINT received, shutting down gracefully');
-  server.close(() => {
-    console.log('Process terminated');
-    process.exit(0);
-  });
-});
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
 process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
+  logger.writeError(`Uncaught Exception: ${err.message}`);
+  logger.writeError(err.stack);
   process.exit(1);
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
+  logger.writeError(`Unhandled Rejection at: ${promise}`);
+  logger.writeError(`Reason: ${reason}`);
   process.exit(1);
 });
 

@@ -1,4 +1,5 @@
 import winston from 'winston';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -19,7 +20,32 @@ export class PayLogger {
    */
   create(logFile = '') {
     if (!logFile) {
-      logFile = path.join(__dirname, '../logs/parsian-pay.log');
+      const logFileName = process.env.LOG_FILE || 'parsian-pay.log';
+      logFile = path.join(__dirname, '..', '..', 'logs', logFileName);
+    }
+
+    const logDir = path.dirname(logFile);
+    if (!fs.existsSync(logDir)) {
+      fs.mkdirSync(logDir, { recursive: true });
+    }
+
+    const transports = [
+      new winston.transports.File({ 
+        filename: logFile,
+        maxsize: 5242880,
+        maxFiles: 5
+      })
+    ];
+
+    if (process.env.NODE_ENV !== 'production') {
+      transports.push(
+        new winston.transports.Console({
+          format: winston.format.combine(
+            winston.format.colorize(),
+            winston.format.simple()
+          )
+        })
+      );
     }
 
     this.logger = winston.createLogger({
@@ -30,19 +56,7 @@ export class PayLogger {
         winston.format.json()
       ),
       defaultMeta: { service: 'parsian-pay' },
-      transports: [
-        new winston.transports.File({ 
-          filename: logFile,
-          maxsize: 5242880, // 5MB
-          maxFiles: 5
-        }),
-        new winston.transports.Console({
-          format: winston.format.combine(
-            winston.format.colorize(),
-            winston.format.simple()
-          )
-        })
-      ]
+      transports
     });
   }
 
@@ -86,43 +100,4 @@ export class PayLogger {
     }
   }
 
-  /**
-   * Write notice log
-   * @param {string} message - Log message
-   */
-  writeNotice(message) {
-    if (this.logger) {
-      this.logger.notice(message);
-    }
-  }
-
-  /**
-   * Write alert log
-   * @param {string} message - Log message
-   */
-  writeAlert(message) {
-    if (this.logger) {
-      this.logger.alert(message);
-    }
-  }
-
-  /**
-   * Write critical log
-   * @param {string} message - Log message
-   */
-  writeCritical(message) {
-    if (this.logger) {
-      this.logger.critical(message);
-    }
-  }
-
-  /**
-   * Write emergency log
-   * @param {string} message - Log message
-   */
-  writeEmergency(message) {
-    if (this.logger) {
-      this.logger.emergency(message);
-    }
-  }
 }

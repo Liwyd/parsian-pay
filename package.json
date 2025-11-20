@@ -1,6 +1,6 @@
 {
   "name": "parsian-pay-js",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Professional Parsian Bank payment gateway for Node.js/Express.js applications",
   "main": "src/index.js",
   "type": "module",

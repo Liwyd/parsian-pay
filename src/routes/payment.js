@@ -3,12 +3,13 @@ import { Pay } from '../services/Pay.js';
 import { Callback } from '../services/Callback.js';
 import { Reverse } from '../services/Reverse.js';
 import { generateOrderId, isValidAmount, isValidUrl } from '../utils/helpers.js';
+import { PayLogger } from '../utils/logger.js';
 
 const router = express.Router();
 
 /**
  * Create payment request
- * POST /api/payment/create
+ * POST /api/v1/payment/create
  */
 router.post('/create', async (req, res) => {
   try {
@@ -22,7 +23,6 @@ router.post('/create', async (req, res) => {
       });
     }
 
-    // Validate required fields
     if (!amount || !isValidAmount(amount)) {
       return res.status(400).json({
         success: false,
@@ -37,7 +37,6 @@ router.post('/create', async (req, res) => {
       });
     }
 
-    // Generate order ID if not provided
     const finalOrderId = orderId || generateOrderId();
 
     const payService = new Pay(pin);
@@ -73,7 +72,9 @@ router.post('/create', async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Payment creation error:', error);
+    const logger = new PayLogger();
+    logger.create();
+    logger.writeError(`Payment creation error: ${error.message}`);
     return res.status(500).json({
       success: false,
       message: 'Internal server error'
@@ -83,7 +84,7 @@ router.post('/create', async (req, res) => {
 
 /**
  * Handle payment callback
- * POST /api/payment/callback
+ * POST /api/v1/payment/callback
  */
 router.post('/callback', async (req, res) => {
   try {
@@ -119,7 +120,9 @@ router.post('/callback', async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Payment callback error:', error);
+    const logger = new PayLogger();
+    logger.create();
+    logger.writeError(`Payment callback error: ${error.message}`);
     return res.status(500).json({
       success: false,
       message: 'Internal server error'
@@ -129,7 +132,7 @@ router.post('/callback', async (req, res) => {
 
 /**
  * Reverse payment
- * POST /api/payment/reverse
+ * POST /api/v1/payment/reverse
  */
 router.post('/reverse', async (req, res) => {
   try {
@@ -171,7 +174,9 @@ router.post('/reverse', async (req, res) => {
       });
     }
   } catch (error) {
-    console.error('Payment reversal error:', error);
+    const logger = new PayLogger();
+    logger.create();
+    logger.writeError(`Payment reversal error: ${error.message}`);
     return res.status(500).json({
       success: false,
       message: 'Internal server error'
@@ -181,7 +186,7 @@ router.post('/reverse', async (req, res) => {
 
 /**
  * Get payment status
- * GET /api/payment/status/:token
+ * GET /api/v1/payment/status/:token
  */
 router.get('/status/:token', async (req, res) => {
   try {
@@ -202,17 +207,17 @@ router.get('/status/:token', async (req, res) => {
       });
     }
 
-    // Note: This is a placeholder. Parsian doesn't provide a direct status check API
-    // You would need to implement your own status tracking
     return res.json({
       success: true,
       data: {
         token: parseInt(token),
-        message: 'Status check not implemented. Use callback endpoint for payment confirmation.'
+        message: 'Use callback endpoint for payment confirmation. Parsian does not provide a direct status check API.'
       }
     });
   } catch (error) {
-    console.error('Payment status error:', error);
+    const logger = new PayLogger();
+    logger.create();
+    logger.writeError(`Payment status error: ${error.message}`);
     return res.status(500).json({
       success: false,
       message: 'Internal server error'

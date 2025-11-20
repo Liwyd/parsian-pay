@@ -1,20 +1,11 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-// Import middleware
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 import { rateLimiter, paymentRateLimiter, helmetConfig, corsConfig, requestLogger } from './middleware/security.js';
-
 import paymentRoutes from './routes/payment.js';
 
-// Load environment variables
 dotenv.config();
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
 
 const app = express();
 
@@ -32,7 +23,7 @@ app.get('/health', (req, res) => {
     success: true,
     message: 'Parsian Payment Gateway is running',
     timestamp: new Date().toISOString(),
-    version: process.env.npm_package_version || '1.0.0'
+    version: '1.0.1'
   });
 });
 
@@ -42,7 +33,7 @@ app.get('/', (req, res) => {
   res.json({
     success: true,
     message: 'Parsian Payment Gateway API',
-    version: process.env.npm_package_version || '1.0.0',
+    version: '1.0.1',
     endpoints: {
       health: '/health',
       payment: {
